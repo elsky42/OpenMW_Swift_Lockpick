@@ -56,7 +56,7 @@ end
 local function looking_at_locked_container()
     local res = lookup_container()
     if res == nil then return false end
-    print('res ' .. tostring(res.hitObject))
+    -- print('res ' .. tostring(res.hitObject))
     return Lockable.objectIsInstance(res.hitObject) and
        Lockable.isLocked(res.hitObject)
 end
@@ -86,17 +86,20 @@ local function rotate_carried_lockpick()
         quality = Lockpick.record(carried).quality + 0.1
     end
     print('Searching for lockpick with quality ' .. tostring(quality))
+    local found = nil;
     for i, lockpick in ipairs(Actor.inventory(self):getAll(Lockpick)) do
         local record = Lockpick.record(lockpick)
-        if record.quality >= quality then
-            equip(lockpick)
-            Actor.setStance(self, Actor.STANCE.Weapon)
-            ui.showMessage(record.name .. ' equipped')
-            return
+        if (not found or Lockpick.record(found).quality > record.quality) and record.quality >= quality then
+            found = lockpick
         end
     end
-    equip(nil)
-    Actor.setStance(self, Actor.STANCE.Weapon)
+    if quality ~= -1 or found then
+        equip(found)
+        Actor.setStance(self, Actor.STANCE.Weapon)
+        if found then
+            ui.showMessage(Lockpick.record(found).name .. ' equipped')
+        end
+    end
 end
 
 -- local function rotate_carried_probe()
